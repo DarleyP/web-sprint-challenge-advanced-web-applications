@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
-import { NavLink, Routes, Route, useNavigate } from 'react-router-dom'
+import { NavLink, Routes, Route, useNavigate ,Navigate} from 'react-router-dom'
 import Articles from './Articles'
 import LoginForm from './LoginForm'
 import Message from './Message'
 import ArticleForm from './ArticleForm'
 import Spinner from './Spinner'
+import { axiosWithAuth } from '../axios'
+import { axios } from 'axios';
+// import PrivateRoute from './PrivateRoute'
 
-const articlesUrl = 'http://localhost:9000/api/articles'
-const loginUrl = 'http://localhost:9000/api/login'
+const articlesUrl = 'http://localhost:3000/articles'
+const loginUrl = 'http://localhost:3000'
 
 export default function App() {
   // ✨ MVP can be achieved with these states
@@ -18,8 +21,8 @@ export default function App() {
 
   // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
-  const redirectToLogin = () => { /* ✨ implement */ }
-  const redirectToArticles = () => { /* ✨ implement */ }
+  const redirectToLogin = () => { navigate('/') }
+  const redirectToArticles = () => { navigate('/articles') }
 
   const logout = () => {
     // ✨ implement
@@ -29,13 +32,28 @@ export default function App() {
     // using the helper above.
   }
 
-  const login = ({ username, password }) => {
+  const login = async ({ username, password }) => {
     // ✨ implement
     // We should flush the message state, turn on the spinner
     // and launch a request to the proper endpoint.
     // On success, we should set the token to local storage in a 'token' key,
     // put the server success message in its proper state, and redirect
     // to the Articles screen. Don't forget to turn off the spinner!
+    // setSpinnerOn(true);
+    setMessage('');
+    setSpinnerOn(true);
+    try {
+      const response = await axiosWithAuth().post(`http://localhost:9000/api/login`, { username, password });
+      localStorage.setItem("token", response.data.token);
+      console.log(response.data.token)
+      redirectToArticles()
+      setSpinnerOn(false);
+
+    } catch (error) {
+      // Handle login error
+      setMessage('Login failed. Please check your credentials.'); // Put the error message in the state
+      setSpinnerOn(false); // Turn off the spinner
+    }
   }
 
   const getArticles = () => {
@@ -65,10 +83,18 @@ export default function App() {
     // ✨ implement
   }
 
+
+  const checkAuthAndRender = (element) => {
+    if (localStorage.getItem("token")) {
+      return element;
+    } else {
+      return <Navigate to='/'/>
+    }
+  };
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
     <>
-      <Spinner />
+      <Spinner on={spinnerOn} />
       <Message />
       <button id="logout" onClick={logout}>Logout from app</button>
       <div id="wrapper" style={{ opacity: spinnerOn ? "0.25" : "1" }}> {/* <-- do not change this line */}
@@ -78,13 +104,16 @@ export default function App() {
           <NavLink id="articlesScreen" to="/articles">Articles</NavLink>
         </nav>
         <Routes>
-          <Route path="/" element={<LoginForm />} />
-          <Route path="articles" element={
-            <>
-              <ArticleForm />
-              <Articles />
-            </>
-          } />
+          <Route path="/" element={<LoginForm login={login} />} />
+          <Route
+            path="/articles"
+            element={checkAuthAndRender(
+              <>
+                <ArticleForm />
+                <Articles />
+              </>
+            )}
+          />
         </Routes>
         <footer>Bloom Institute of Technology 2022</footer>
       </div>

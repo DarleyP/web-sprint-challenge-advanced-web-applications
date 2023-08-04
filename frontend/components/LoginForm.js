@@ -19,7 +19,10 @@ export default function LoginForm(props) {
     evt.preventDefault()
     // ✨ implement
     login(values)
-    setValues(initialFormValues)
+    setValues({
+      username: '',
+      password: '',
+    })
   }
 
   const isDisabled = () => {

@@ -33,7 +33,7 @@ export default function App() {
     localStorage.removeItem("token");
     setMessage('Goodbye!');
     redirectToLogin();
-    
+
   }
 
   const login = async ({ username, password }) => {
@@ -95,7 +95,7 @@ return axiosWithAuth().get(`http://localhost:9000/api/articles`).then(res=> res.
 const articleHelper = () => {
   getArticlesHelp().then(res => {
     setArticles(res.articles)
-    console.log(res)
+   
   })
 }
  
@@ -120,6 +120,7 @@ const articleHelper = () => {
      const response =  await axiosWithAuth().put(`http://localhost:9000/api/articles/${article_id}`, article)
      setMessage(response.data.message)
      setCurrentArticleId(null)
+     articleHelper()
     } catch(err) {
       setMessage('ops')
       console.log(err)
